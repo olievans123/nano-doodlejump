@@ -1,0 +1,14 @@
+# Original menu input, start transition, then test-only steering through jumps.
+0 shot menu
+10 down 105 195
+12 shot pressed
+13 up
+20 shot fade
+44 auto 1
+48 shot started
+500 shot play500
+1000 shot play1000
+1200 auto 0
+1200 tilt 0.9
+1500 shot death
+1800 shot over
