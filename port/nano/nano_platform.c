@@ -18,6 +18,9 @@ static struct { char name[48];uint32_t size; } files[64];
 static int file_count,initialized,failed;
 static float tilt;
 static struct { uint64_t periods,cpu;uint32_t count,max_period,slow;int written; } perf;
+uint8_t dj_fast_redraw;          /* set by the entry: the resident honours a short heartbeat */
+#define PACE_US 16667u            /* frame spacing when it does: the display's 60 Hz */
+static uint32_t gap_estimate=6500; /* platform time between our return and the next callback */
 uint64_t plat_time_us(void) {
     static uint32_t last;static uint64_t high;
     uint32_t now=hb_time_uptime_us();if(now<last)high+=1ull<<32;last=now;return high|now;
@@ -105,7 +108,10 @@ void dj_nano_frame(int w,int h,uint32_t frame) {
         port_log_flush(DATA_DIR "/log.txt");
     }
     keep_awake();
+    static uint64_t previous_end;
     uint64_t now=plat_time_us();uint32_t period=last?(uint32_t)(now-last):16667;
+    uint32_t gap=previous_end?(uint32_t)(now-previous_end):0;
+    if(gap>2000u && gap<16000u)gap_estimate=(gap_estimate*7u+gap)/8u;
     float dt=period*1e-6f;last=now;
     int live=G.state==DJ_PLAY && G.death==DJ_ALIVE && !G.player_frozen;
     int sample=live && previous_live;
@@ -123,11 +129,19 @@ void dj_nano_frame(int w,int h,uint32_t frame) {
     gfx_begin_frame(w,h,320,480,0,((bg>>16)&255)/255.f,((bg>>8)&255)/255.f,(bg&255)/255.f);
     game_frame(dt,&touch);gfx_end_frame();
     if(sample)perf.cpu+=plat_time_us()-now;
+    /* With the short heartbeat the platform shows frames as fast as we finish them;
+     * hold each one to its 60 Hz slot (a spin: the SDK has no sleep for the UI task). */
+    if(dj_fast_redraw && PACE_US>gap_estimate) {
+        uint64_t until=now+(PACE_US-gap_estimate);
+        while(plat_time_us()<until){}
+    }
+    previous_end=plat_time_us();
     if(G.state==DJ_OVER && !perf.written) {
         perf.written=1;
         uint32_t fps10=perf.periods?(uint32_t)((uint64_t)perf.count*10000000/perf.periods):0;
-        plat_log("run score=%d frames=%u fps=%u.%u avg_submit_us=%u max_period_us=%u periods_over_20ms=%u",
-            G.score,perf.count,fps10/10,fps10%10,perf.count?(uint32_t)(perf.cpu/perf.count):0,perf.max_period,perf.slow);
+        plat_log("run score=%d frames=%u fps=%u.%u avg_submit_us=%u max_period_us=%u periods_over_20ms=%u fast_redraw=%u gap=%u",
+            G.score,perf.count,fps10/10,fps10%10,perf.count?(uint32_t)(perf.cpu/perf.count):0,perf.max_period,perf.slow,
+            (unsigned)dj_fast_redraw,(unsigned)gap_estimate);
         port_log_flush(DATA_DIR "/log.txt"); /* Once after a run; no on-screen counter or per-frame disk writes. */
     }
 }

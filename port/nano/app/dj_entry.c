@@ -9,6 +9,7 @@
 #define APP_FILE "/Apps/Executables/Doodle Jump.hbapp"
 extern void dj_nano_frame(int w,int h,uint32_t frame);
 static uint32_t ran_before __attribute__((section(".noinit")));
+extern uint8_t dj_fast_redraw;
 void *payload_entry(int op,void *fb,int w,int h,hb_shared_t *sh);
 
 /* A cached app image needs its own initial data restored on relaunch. */
@@ -52,5 +53,11 @@ void *payload_entry(int op,void *fb,int w,int h,hb_shared_t *sh) {
     ran_before=1;
     for(uint32_t *p=__bss_start__;p<__bss_end__;p++)*p=0;
     hb_shared=sh;
+    /* A resident that supports it (caps bit 0 in the second former padding byte of
+     * hb_shared_t) redraws on a 2 ms heartbeat for us instead of 16 ms, so a dropped
+     * redraw request is retried at once; the game then paces itself to the display.
+     * With an older resident both bytes are zero and frames free-run as before. */
+    dj_fast_redraw=0;
+    if(sh->pad[1]&1u){sh->pad[0]=2;dj_fast_redraw=1;}
     return (void *)frame_callback;
 }
