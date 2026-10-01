@@ -62,9 +62,9 @@ void sprite_rect(const char *name,float x,float y,float width,float height,float
     if(!s||width<=0||height<=0||alpha<=0)return;
     unsigned a=(unsigned)((alpha>1?1:alpha)*255.f);
     uint32_t color=a*0x01010101u;
-    /* Game coordinates are y-up in a 320x480 canvas, with 48 logical-pixel
-     * bars above and below on the nano's 240x432 panel. */
-    x-=width*.5f;y=528.f-y-height*.5f;
+    /* Convert the original y-up canvas to y-down drawing coordinates. The
+     * platform stretches this full canvas to the panel, without margins. */
+    x-=width*.5f;y=480.f-y-height*.5f;
     float ux=width/(s->w*asset_scale),uy=height/(s->h*asset_scale);
     for(i=0;i<s->count;i++) {
         const Piece *p=pieces+s->start+i;

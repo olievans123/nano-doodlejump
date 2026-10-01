@@ -1,6 +1,6 @@
 # Doodle Jump 1.0 → iPod nano 7G
 
-Work in progress toward a port of the original iOS Doodle Jump 1.0. **The nano test build is installed, with all 30 files verified by device readback. Gameplay has not yet been validated on hardware. This is not yet a finished full decompilation port.**
+Work in progress toward a port of the original iOS Doodle Jump 1.0. **The nano test build is installed and has been played successfully on hardware. A follow-up build fixes reversed tilt and removes the screen margins; confirmation of those fixes is pending. This is not yet a finished full decompilation port.**
 
 The target is the original native game's behaviour, assets and flow. Gameplay is translated into C from local decompiler output, using the original artwork and all 19 obstacle arrangements. Arithmetic, random generation, collision order and object updates are compared against original ARM instructions. UIKit, graphics upload, input and storage are adapted to NanoApps.
 
@@ -21,7 +21,7 @@ The reference harness supplies Objective-C dispatch, standard arithmetic and lib
 
 ## Remaining work
 
-Launch/relaunch, tilt direction, touch coordinates, display sleep and actual frame rate need hardware tests. Nano audio is currently silent: the SDK's single-shot audio API does not reproduce overlapping effects and the looping UFO sound. The Mac interactive build has an OpenAL adapter for the 13 original effects, but listening validation remains outstanding.
+The first hardware test plays well, with two longer runs logging average callback rates of 57.5 and 58.4 Hz. These are short samples of app callbacks, not measurements of panel presentation. The reported tilt direction and screen margins have been corrected in an installed follow-up build. Relaunch, the corrected controls, extended play and display sleep still need confirmation. Nano audio is currently silent: the SDK's single-shot audio API does not reproduce overlapping effects and the looping UFO sound. The Mac interactive build has an OpenAL adapter for the 13 original effects, but listening validation remains outstanding.
 
 The online leaderboard is explicitly adapted to an offline local-best page; no original network service is contacted. iOS vibration and UIKit/network services are platform differences. Exported decompiler output and passing comparisons do not establish whole-program equivalence or a binary-matching rebuild.
 
@@ -39,7 +39,7 @@ make -C port
 ./port/build/djhost -d build/data -S build/save -w
 ```
 
-Use A/D or left/right arrows for tilt, release the mouse button to shoot, and Q to quit. The original 320×480 canvas is displayed at 240×360 with margins on a 240×432 panel. Tilt filtering runs at 100 Hz independently of the 60 Hz simulation, using the latest sample available from the platform adapter. Hardware performance is unmeasured.
+Use A/D or left/right arrows for tilt, release the mouse button to shoot, and Q to quit. The original 320×480 canvas fills the 240×432 panel, with some vertical stretching and no cropping or margins. Drawing, clipping, fades and touch coordinates use the same canvas. The nano adapter reverses the sensor X sign to match the iPhone's movement direction. Tilt filtering runs at 100 Hz independently of the 60 Hz simulation, using the latest sample available from the platform adapter.
 
 ## Original-code comparisons
 

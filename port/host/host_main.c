@@ -3,7 +3,7 @@
  *   djhost [options]
  *     -d DIR      game data directory (converted assets)          [build/data]
  *     -S DIR      save directory                                  [build/save]
- *     -g WxH      logical game screen                             [320x576]
+ *     -g WxH      logical game screen                             [320x480]
  *     -p WxH      panel (window / framebuffer) size in pixels     [240x432]
  *     -r          render rotated onto a portrait panel, as on the nano (panel 240x432)
  *     -w          interactive window (mouse = finger, right button = second finger at centre)
@@ -31,7 +31,7 @@
 #include "../src/game.h"
 
 static const char *sDataDir = "build/data", *sSaveDir = "build/save", *sShotDir = "build/shots";
-static float sLogW = 320.f, sLogH = 576.f;
+static float sLogW = 320.f, sLogH = 480.f;
 static int sPanelW = 240, sPanelH = 432, sRot;
 static int sFps = 60;
 static int sJitter;

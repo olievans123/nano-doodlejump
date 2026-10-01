@@ -390,7 +390,7 @@ static void draw_gameover(void) {
     sprite("game-over-podrapano",160,-953-G.down,1,1);
 }
 static void render(void) {
-    gfx_set_clip(0,48,320,480);
+    gfx_set_clip(0,0,320,480);
     if(G.death==DJ_FALL||G.death==DJ_SCROLL_END) {
         float offset=G.background;
         sprite("bck",160,240-offset,1,1);sprite("bck",160,-240-offset,1,1);
@@ -429,7 +429,7 @@ static void render(void) {
         }
         float u=(lo+hi)*.5f,alpha=3*(1-u)*u*u+u*u*u;
         if(fade_phase==2)alpha=1-alpha;
-        float xy[8]={0,48,320,48,320,528,0,528},uv[8]={0};
+        float xy[8]={0,0,320,0,320,480,0,480},uv[8]={0};
         gfx_quad(0,1,1,xy,uv,(uint32_t)(alpha*255.f)<<24);
     }
     gfx_set_clip(0,0,0,0);
@@ -460,7 +460,7 @@ static int button_at(float x,float y) {
 void game_frame(float dt,const PlatTouches *touches) {
     int touched=touches&&touches->count>0;
     if(!ready)return;
-    if(touched) {tap_x=touches->pt[0].x;tap_y=touches->pt[0].y-48;}
+    if(touched) {tap_x=touches->pt[0].x;tap_y=touches->pt[0].y;}
     if(touched&&!G.touch_down)tracking_button=button_at(tap_x,tap_y);
     if(touched)pressed_button=tracking_button==button_at(tap_x,tap_y)?tracking_button:0;
     if(!touched&&G.touch_down)tap_pending=1;

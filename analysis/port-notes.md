@@ -60,16 +60,20 @@ Nano audio is disabled. The existing single-shot SDK audio API cannot reproduce 
 
 The SDK wake-lock interface is implemented for LVGL apps; it is not currently used by this GL app. Display idle behaviour, launch/relaunch, control orientation and performance need hardware testing. No firmware/loader modifications are part of this port.
 
-The test build was installed on 1 October 2026. All 30 app/data/icon/pack files matched their staged SHA-256 checksums when read back after flushing the device. Hardware gameplay validation is still pending. No new remote GitHub repository has been created. Do not describe this state as a finished full decompilation port.
+The test build was installed on 1 October 2026. All 30 app/data/icon/pack files matched their staged SHA-256 checksums when read back after flushing the device. The user subsequently reported that it plays really well, but the tilt direction is reversed and there are bars above and below the game. No new remote GitHub repository has been created. Do not describe this state as a finished full decompilation port.
 
 `tools/inspect_original.py` reads the actual Mach-O Objective-C ivar tables: 184 distinct entries. The initial `otool -ov` text parse duplicated Texture2D entries and missed five fields; it has been replaced. Existing gameplay offsets were unchanged. The new metadata also correctly identifies ProjectileObject's size and speed fields.
 
 ## Hardware-test checkpoint
 
-The local app is `build/doodlejump.hbapp`, 50,272 bytes, SHA-256 `8b469ba25a97fbd3249fe29d01e31c664c2dc99681fad838dd371b4425722d17`. Its image span including BSS is 224,436 bytes. The SDK Thumb-FP gate passes.
+The initial app was 50,272 bytes, SHA-256 `8b469ba25a97fbd3249fe29d01e31c664c2dc99681fad838dd371b4425722d17`. It is retained locally as `build/doodlejump-before-screenfix.hbapp`. The current app, `build/doodlejump.hbapp`, is 50,248 bytes, SHA-256 `cba03c008632cc80132b6c3a3713513f2bc71c5e76ec2157b1db6dcf3ecd95dd`. Its image span including BSS is 224,436 bytes. The SDK Thumb-FP gate passes.
 
-`build/nano-test-stage` contains the installed tree. Its four entries are Mario 64, Mario Kart, Angry Birds and Doodle Jump. The first three bundles are preserved byte-for-byte. The freshly read device base matched SHA-256 `91e1f47a24d8946bdb1bc7898d37020f609ddcfb6178e542dbb37f0fafcee05d`. The original pack is backed up on the mini PC at `/home/olipat/nano-dj/device-backup-20261001/AllApps-B.pack` and locally at `build/device-before-20261001.pack`. Only Doodle Jump app/data/icon files and the app pack were written; existing game data and firmware were untouched.
+`build/nano-test-stage` contains the initial installation tree. Its four entries are Mario 64, Mario Kart, Angry Birds and Doodle Jump. The first three bundles are preserved byte-for-byte. The freshly read device base matched SHA-256 `91e1f47a24d8946bdb1bc7898d37020f609ddcfb6178e542dbb37f0fafcee05d`. The original pack is backed up on the mini PC at `/home/olipat/nano-dj/device-backup-20261001/AllApps-B.pack` and locally at `build/device-before-20261001.pack`. Only Doodle Jump app/data/icon files and the app pack were written; existing game data and firmware were untouched.
 
-Next: unplug the nano, launch Doodle Jump from the home screen, verify tilt/touch and relaunch, play through deaths/restarts, then reconnect to read `/Apps/Data/DoodleJump/log.txt` for normal-play callback FPS. Actual device sound support and display-idle behaviour remain unresolved.
+The follow-up build reverses nano sensor X and maps the original 320×480 canvas to the full 240×432 display, with vertical stretching. Sprite coordinates, clipping, fades and touch mapping all use the unpadded canvas. Host screenshots and scripted touches verified menu, scores, gameplay, game over and Play Again. Only the executable was replaced on the iPod; its SHA-256 was checked after a device flush, and the app pack and saved best score were verified unchanged. The previous executable, score and log are backed up at `/home/olipat/nano-dj/device-backup-screenfix-20261001/`.
+
+The initial device log contains runs of 721 frames at 57.5 callbacks/s and 600 frames at 58.4 callbacks/s, with average CPU submission times of 2,912 and 2,945 microseconds. These short samples describe callback timing, not panel presentation; no performance result is yet available for the full-screen update.
+
+Next: unplug and verify the corrected tilt and screen fit, plus relaunch and longer play. Actual device sound support and display-idle behaviour remain unresolved.
 
 Installation note: mcopy uses `-n` to suppress overwrite prompts for Unix destinations; `-o` handles DOS destinations only. The final readback reused temporary Unix paths and prompted despite `-o`. Those prompts were answered for the temporary verification files; all checks completed successfully. Future scripted readback must use `-n` or fresh destination paths.

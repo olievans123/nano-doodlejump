@@ -84,7 +84,7 @@ void dj_nano_frame(int w,int h,uint32_t frame) {
     if(initialized && frame<previous_frame) {game_gl_lost();initialized=0;last=0;}
     previous_frame=frame;
     if(!initialized) {
-        if(manifest() || game_init(320,576)) {
+        if(manifest() || game_init(320,480)) {
             plat_log("Doodle Jump initialization failed");port_log_flush(DATA_DIR "/log.txt");failed=1;return;
         }
         initialized=1;plat_log("ready: heap=%u largest=%u texture=%u",hb_os_heap_free(),hb_os_heap_largest(),gfx_stat_tex_bytes);
@@ -100,11 +100,12 @@ void dj_nano_frame(int w,int h,uint32_t frame) {
         if(period>perf.max_period)perf.max_period=period;
     }
     previous_live=live;previous_state=G.state;
-    int32_t acceleration[3];hb_accel_read_milli_g(acceleration);tilt=(float)acceleration[0]*.001f;
+    /* The nano's portrait X axis has the opposite sign to the iPhone input. */
+    int32_t acceleration[3];hb_accel_read_milli_g(acceleration);tilt=(float)acceleration[0]*-.001f;
     hb_spoint_t finger;hb_surface_touch_read(&finger);
-    PlatTouches touch={0};if(finger.down){touch.count=1;touch.pt[0].x=finger.x*320.f/w;touch.pt[0].y=finger.y*576.f/h;}
+    PlatTouches touch={0};if(finger.down){touch.count=1;touch.pt[0].x=finger.x*320.f/w;touch.pt[0].y=finger.y*480.f/h;}
     uint32_t bg=game_bg_color();
-    gfx_begin_frame(w,h,320,576,0,((bg>>16)&255)/255.f,((bg>>8)&255)/255.f,(bg&255)/255.f);
+    gfx_begin_frame(w,h,320,480,0,((bg>>16)&255)/255.f,((bg>>8)&255)/255.f,(bg&255)/255.f);
     game_frame(dt,&touch);gfx_end_frame();
     if(sample)perf.cpu+=plat_time_us()-now;
     if(G.state==DJ_OVER && !perf.written) {
