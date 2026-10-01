@@ -20,7 +20,10 @@ static float tilt;
 static struct { uint64_t periods,cpu;uint32_t count,max_period,slow;int written; } perf;
 uint8_t dj_fast_redraw;          /* set by the entry: the resident honours a short heartbeat */
 #define PACE_US 16667u            /* frame spacing when it does: the display's 60 Hz */
-static uint32_t gap_estimate=6500; /* platform time between our return and the next callback */
+/* Platform time between our return and the next callback. It redraws in pairs, so the
+ * gap is short (~5 ms) then long (~8.5 ms) in strict alternation: predict the next one. */
+static uint32_t gap_estimate=6500,gap_short=5200,gap_long=8600;
+static int last_short;
 uint64_t plat_time_us(void) {
     static uint32_t last;static uint64_t high;
     uint32_t now=hb_time_uptime_us();if(now<last)high+=1ull<<32;last=now;return high|now;
@@ -111,7 +114,11 @@ void dj_nano_frame(int w,int h,uint32_t frame) {
     static uint64_t previous_end;
     uint64_t now=plat_time_us();uint32_t period=last?(uint32_t)(now-last):16667;
     uint32_t gap=previous_end?(uint32_t)(now-previous_end):0;
-    if(gap>2000u && gap<16000u)gap_estimate=(gap_estimate*7u+gap)/8u;
+    if(gap>2000u && gap<16000u) {
+        last_short=gap<(gap_short+gap_long)/2u;
+        if(last_short)gap_short=(gap_short*7u+gap)/8u;else gap_long=(gap_long*7u+gap)/8u;
+        gap_estimate=last_short?gap_long:gap_short;   /* the next gap */
+    }
     float dt=period*1e-6f;last=now;
     int live=G.state==DJ_PLAY && G.death==DJ_ALIVE && !G.player_frozen;
     int sample=live && previous_live;
@@ -141,7 +148,7 @@ void dj_nano_frame(int w,int h,uint32_t frame) {
         uint32_t fps10=perf.periods?(uint32_t)((uint64_t)perf.count*10000000/perf.periods):0;
         plat_log("run score=%d frames=%u fps=%u.%u avg_submit_us=%u max_period_us=%u periods_over_20ms=%u fast_redraw=%u gap=%u",
             G.score,perf.count,fps10/10,fps10%10,perf.count?(uint32_t)(perf.cpu/perf.count):0,perf.max_period,perf.slow,
-            (unsigned)dj_fast_redraw,(unsigned)gap_estimate);
+            (unsigned)dj_fast_redraw,(unsigned)((gap_short+gap_long)/2u));
         port_log_flush(DATA_DIR "/log.txt"); /* Once after a run; no on-screen counter or per-frame disk writes. */
     }
 }
