@@ -139,7 +139,12 @@ void dj_nano_frame(int w,int h,uint32_t frame) {
     /* With the short heartbeat the platform shows frames as fast as we finish them;
      * hold each one to its 60 Hz slot (a spin: the SDK has no sleep for the UI task). */
     if(dj_fast_redraw && PACE_US>gap_estimate) {
-        uint64_t until=now+(PACE_US-gap_estimate);
+        /* a fixed beat: an overrun is made up by the next frame; start again when
+         * more than a frame off it */
+        static uint64_t slot;
+        if(!slot || now>slot+PACE_US || now+PACE_US<slot)slot=now;
+        slot+=PACE_US;
+        uint64_t until=slot-gap_estimate;
         while(plat_time_us()<until){}
     }
     previous_end=plat_time_us();
