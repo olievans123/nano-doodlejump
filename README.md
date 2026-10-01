@@ -1,6 +1,6 @@
 # Doodle Jump 1.0 → iPod nano 7G
 
-Work in progress toward a port of the original iOS Doodle Jump 1.0. **The nano test build compiles, but has not been installed or validated on hardware. This is not yet a finished full decompilation port.**
+Work in progress toward a port of the original iOS Doodle Jump 1.0. **The nano test build is installed, with all 30 files verified by device readback. Gameplay has not yet been validated on hardware. This is not yet a finished full decompilation port.**
 
 The target is the original native game's behaviour, assets and flow. Gameplay is translated into C from local decompiler output, using the original artwork and all 19 obstacle arrangements. Arithmetic, random generation, collision order and object updates are compared against original ARM instructions. UIKit, graphics upload, input and storage are adapted to NanoApps.
 

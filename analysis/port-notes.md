@@ -60,7 +60,7 @@ Nano audio is disabled. The existing single-shot SDK audio API cannot reproduce 
 
 The SDK wake-lock interface is implemented for LVGL apps; it is not currently used by this GL app. Display idle behaviour, launch/relaunch, control orientation and performance need hardware testing. No firmware/loader modifications are part of this port.
 
-On the last check the mini PC did not expose an Apple iPod block device. No Doodle Jump files have been installed. No new remote GitHub repository has been created. Do not describe this state as a finished full decompilation port.
+The test build was installed on 1 October 2026. All 30 app/data/icon/pack files matched their staged SHA-256 checksums when read back after flushing the device. Hardware gameplay validation is still pending. No new remote GitHub repository has been created. Do not describe this state as a finished full decompilation port.
 
 `tools/inspect_original.py` reads the actual Mach-O Objective-C ivar tables: 184 distinct entries. The initial `otool -ov` text parse duplicated Texture2D entries and missed five fields; it has been replaced. Existing gameplay offsets were unchanged. The new metadata also correctly identifies ProjectileObject's size and speed fields.
 
@@ -68,6 +68,8 @@ On the last check the mini PC did not expose an Apple iPod block device. No Dood
 
 The local app is `build/doodlejump.hbapp`, 50,272 bytes, SHA-256 `8b469ba25a97fbd3249fe29d01e31c664c2dc99681fad838dd371b4425722d17`. Its image span including BSS is 224,436 bytes. The SDK Thumb-FP gate passes.
 
-`build/nano-test-stage` contains a preview install tree based on the saved Angry Birds no-HUD pack. Its four entries are Mario 64, Mario Kart, Angry Birds and Doodle Jump. The first three bundles are preserved byte-for-byte. This saved base must be checked against a fresh device pack before any installation. All 30 staged files have checksums. Only app/data/icon/pack files are staged; firmware is outside this task.
+`build/nano-test-stage` contains the installed tree. Its four entries are Mario 64, Mario Kart, Angry Birds and Doodle Jump. The first three bundles are preserved byte-for-byte. The freshly read device base matched SHA-256 `91e1f47a24d8946bdb1bc7898d37020f609ddcfb6178e542dbb37f0fafcee05d`. The original pack is backed up on the mini PC at `/home/olipat/nano-dj/device-backup-20261001/AllApps-B.pack` and locally at `build/device-before-20261001.pack`. Only Doodle Jump app/data/icon files and the app pack were written; existing game data and firmware were untouched.
 
-Next: reconnect the nano, compare the current app pack with the staged base, install the app files, launch from the home screen, verify tilt/touch and relaunch, play through deaths/restarts, then read `/Apps/Data/DoodleJump/log.txt` for normal-play callback FPS. Actual device sound support and display-idle behaviour remain unresolved.
+Next: unplug the nano, launch Doodle Jump from the home screen, verify tilt/touch and relaunch, play through deaths/restarts, then reconnect to read `/Apps/Data/DoodleJump/log.txt` for normal-play callback FPS. Actual device sound support and display-idle behaviour remain unresolved.
+
+Installation note: mcopy uses `-n` to suppress overwrite prompts for Unix destinations; `-o` handles DOS destinations only. The final readback reused temporary Unix paths and prompted despite `-o`. Those prompts were answered for the temporary verification files; all checks completed successfully. Future scripted readback must use `-n` or fresh destination paths.
