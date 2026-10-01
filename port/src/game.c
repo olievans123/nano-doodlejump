@@ -361,7 +361,8 @@ static void draw_objects(void) {
         else if(o->type==5)s=o->texture?"ufo1":"ufo0";
         else if(o->type==7)s="monster1";
         else if(o->type==8)s="monster2";
-        else if(o->type==9)s=o->texture==2?"monster3-l":"monster3-r";
+        /* textureMonster[2] is monster3-r.png and [3] monster3-l.png in the original. */
+        else if(o->type==9)s=o->texture==2?"monster3-r":"monster3-l";
         if(s)sprite(s,o->x,o->y,1,o->alpha);
     }
     }

@@ -1,6 +1,6 @@
 # Original menu input, start transition, then test-only steering through jumps.
 0 shot menu
-10 down 105 195
+10 down 104 147
 12 shot pressed
 13 up
 20 shot fade

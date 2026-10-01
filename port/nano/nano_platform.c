@@ -78,6 +78,20 @@ void plat_audio_track_volume(int track,float volume){(void)track;(void)volume;}
 void plat_audio_clip_volume(const char *name,float volume){(void)name;(void)volume;}
 void port_crumb(const char *tag,uint32_t a,uint32_t b){(void)tag;(void)a;(void)b;}
 
+/* Keep the screen lit: the game is played by tilting, so the OS sees no touches and
+ * dims after ~20-40 s. Reset its idle clock like a touch every 10 s, as the Mario Kart
+ * and Angry Birds ports do (firmware 39579dba addresses). */
+static void keep_awake(void) {
+    static uint64_t last;
+    uint64_t now=plat_time_us();
+    if(last && now-last<10000000ull)return;
+    last=now;
+    typedef void *(*instance_fn)(void);
+    typedef void (*event_fn)(void *,int);
+    void *manager=((instance_fn)(0x0842ae80u|1u))();
+    if(manager)((event_fn)(0x084069d8u|1u))(manager,4);
+}
+
 void dj_nano_frame(int w,int h,uint32_t frame) {
     static uint64_t last;static uint32_t previous_frame;static int previous_state,previous_live;
     if(w<1||h<1||failed)return;
@@ -90,6 +104,7 @@ void dj_nano_frame(int w,int h,uint32_t frame) {
         initialized=1;plat_log("ready: heap=%u largest=%u texture=%u",hb_os_heap_free(),hb_os_heap_largest(),gfx_stat_tex_bytes);
         port_log_flush(DATA_DIR "/log.txt");
     }
+    keep_awake();
     uint64_t now=plat_time_us();uint32_t period=last?(uint32_t)(now-last):16667;
     float dt=period*1e-6f;last=now;
     int live=G.state==DJ_PLAY && G.death==DJ_ALIVE && !G.player_frozen;
